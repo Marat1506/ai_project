@@ -1,0 +1,33 @@
+{
+  "name": "z1",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx next dev",
+    "build": "npx next build",
+    "start": "npx next start",
+    "lint": "eslint",
+    "db:init": "bun run src/lib/db/init.ts",
+    "xlsx:create": "bun run scripts/create-example-xlsx.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^1.0.5",
+    "ai": "^3.4.33",
+    "better-sqlite3": "^12.6.0",
+    "next": "16.1.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "xlsx": "^0.18.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
