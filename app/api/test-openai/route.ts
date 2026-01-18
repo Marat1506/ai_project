@@ -14,7 +14,7 @@ export async function GET() {
     });
 
     const result = await generateText({
-      model: openai('gpt-4o-mini'),
+      model: openai('gpt-4o'),
       prompt: 'Say "Hello, World!" in one word.',
     });
 

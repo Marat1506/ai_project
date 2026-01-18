@@ -1,4 +1,4 @@
-// Database initialization script
+
 import { getDb } from './db';
 
 console.log('Initializing database...');

@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ToolInvocation } from 'ai/react';
+import type { ToolInvocation } from '@ai-sdk/react';
 import { ConfirmationDialog } from './ConfirmationDialog';
-import { TableViewer } from './TableViewer';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -24,12 +23,8 @@ export function ChatMessage({
   onConfirmAction,
   onCancelAction,
 }: ChatMessageProps) {
-  const [showTable, setShowTable] = useState(false);
-  const [tableData, setTableData] = useState<any>(null);
-
   const isUser = role === 'user';
 
-  // Extract table data from tool invocations
   const tableToolInvocation = toolInvocations?.find(
     (inv) => inv.toolName === 'readExcelRange' && inv.state === 'result'
   );
@@ -40,8 +35,6 @@ export function ChatMessage({
         range: tableToolInvocation.result.range,
         data: tableToolInvocation.result.data,
       };
-      setTableData(data);
-      setShowTable(true);
       if (onTableClick) {
         onTableClick(data);
       }
@@ -64,7 +57,6 @@ export function ChatMessage({
     <>
       <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 px-4`}>
         <div className={`flex gap-4 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-          {/* Avatar */}
           <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
             isUser ? 'bg-gray-800' : 'bg-gray-200'
           }`}>
@@ -79,7 +71,6 @@ export function ChatMessage({
             )}
           </div>
           
-          {/* Message content */}
           <div className="flex-1">
             <div className={`rounded-2xl px-4 py-3 ${
               isUser
@@ -87,42 +78,29 @@ export function ChatMessage({
                 : 'bg-gray-100 text-gray-900'
             }`}>
               <div className="whitespace-pre-wrap leading-relaxed">{content}</div>
-          
-          {/* Render tool invocations */}
           {toolInvocations && toolInvocations.length > 0 && (
             <div className="mt-3 space-y-2">
               {toolInvocations.map((invocation, idx) => {
                 if (invocation.state === 'result' && invocation.result) {
                   const result = invocation.result as any;
                   
-                  // Handle table display
                   if (invocation.toolName === 'readExcelRange' && result.data) {
                     return (
                       <div key={idx} className="mt-3">
                         <button
                           onClick={handleTableClick}
-                          className={`text-sm underline ${
+                          className={`text-sm font-medium px-3 py-1 rounded ${
                             isUser 
-                              ? 'text-blue-300 hover:text-blue-200' 
-                              : 'text-blue-600 hover:text-blue-800'
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                              : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
                           }`}
                         >
                           📊 Показать таблицу: {result.range?.sheet}!{result.range?.from}:{result.range?.to}
                         </button>
-                        <div className={`mt-2 text-xs p-2 rounded border ${
-                          isUser 
-                            ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                            : 'bg-white border-gray-300'
-                        }`}>
-                          <pre className="overflow-x-auto">
-                            {JSON.stringify(result.data, null, 2)}
-                          </pre>
-                        </div>
                       </div>
                     );
                   }
                   
-                  // Handle confirmation requests
                   if (result.requiresConfirmation) {
                     return (
                       <ConfirmationDialog
@@ -136,7 +114,6 @@ export function ChatMessage({
                     );
                   }
                   
-                  // Handle success messages
                   if (result.success || result.message) {
                     return (
                       <div key={idx} className={`text-sm mt-2 ${
@@ -166,13 +143,6 @@ export function ChatMessage({
           </div>
         </div>
       </div>
-      
-      {showTable && tableData && (
-        <TableViewer
-          data={tableData}
-          onClose={() => setShowTable(false)}
-        />
-      )}
     </>
   );
 }

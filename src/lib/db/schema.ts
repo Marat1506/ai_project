@@ -11,6 +11,7 @@ export interface Message {
   thread_id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  tool_invocations?: string; // JSON string of tool invocations
   created_at: string;
 }
 

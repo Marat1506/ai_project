@@ -30,7 +30,6 @@ export function TableViewer({ data, onClose, onSelectRange }: TableViewerProps) 
     return `${colStr}${r + 1}`;
   };
 
-  // Parse address to row/col
   const addressToRC = (address: string): { r: number; c: number } => {
     const match = address.match(/^([A-Z]+)(\d+)$/);
     if (!match) return { r: 0, c: 0 };
@@ -141,12 +140,17 @@ export function TableViewer({ data, onClose, onSelectRange }: TableViewerProps) 
             Выделите ячейки для создания меншона диапазона
           </div>
           {selectedCells.size > 0 && (
-            <button
-              onClick={handleSaveRange}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Сохранить диапазон
-            </button>
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-700">
+                Выбрано ячеек: {selectedCells.size}
+              </div>
+              <button
+                onClick={handleSaveRange}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Добавить диапазон в чат
+              </button>
+            </div>
           )}
         </div>
         

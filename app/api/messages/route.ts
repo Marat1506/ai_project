@@ -3,7 +3,7 @@ import { createMessage } from '@/src/lib/db/db';
 
 export async function POST(request: NextRequest) {
   try {
-    const { threadId, role, content } = await request.json();
+    const { threadId, role, content, toolInvocations } = await request.json();
     
     if (!threadId || !role || !content) {
       return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const message = createMessage(threadId, role, content);
+    const message = createMessage(threadId, role, content, toolInvocations);
     return NextResponse.json(message);
   } catch (error) {
     console.error('Error creating message:', error);

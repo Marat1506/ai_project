@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.5",
-    "ai": "^3.4.33",
+    "@ai-sdk/react": "^3.0.41",
+    "ai": "^6.0.35",
     "better-sqlite3": "^12.6.0",
     "next": "16.1.1",
     "react": "19.2.3",

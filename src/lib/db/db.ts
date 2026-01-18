@@ -39,12 +39,9 @@ export function getDb(): any {
           }
         }
       } else {
-        // Not running in Bun - use better-sqlite3 as fallback for Node.js
-        // This is necessary because Next.js API routes run in Node.js runtime
         try {
           const BetterSqlite3 = require('better-sqlite3');
           DatabaseClass = BetterSqlite3;
-          console.warn('Using better-sqlite3 as fallback (Next.js API routes run in Node.js, not Bun)');
         } catch (e: any) {
           throw new Error(
             'Neither Bun SQLite nor better-sqlite3 is available. ' +
@@ -68,12 +65,9 @@ export function getDb(): any {
       // Create database instance
       db = new DatabaseClass(DB_PATH);
       
-      // Set foreign keys (different API for different libraries)
       if (db.pragma) {
-        // better-sqlite3
         db.pragma('foreign_keys = ON');
       } else if (db.exec) {
-        // Bun SQLite
         db.exec('PRAGMA foreign_keys = ON;');
       }
       
@@ -90,18 +84,14 @@ export function getDb(): any {
 }
 
 function initTables(database: any) {
-  // Helper to execute SQL (works for both Bun and better-sqlite3)
   const exec = (sql: string) => {
     if (database.exec) {
-      // Bun SQLite
       database.exec(sql);
     } else if (database.prepare) {
-      // better-sqlite3 - use exec method
       database.exec(sql);
     }
   };
 
-  // Create threads table
   exec(`
     CREATE TABLE IF NOT EXISTS threads (
       id TEXT PRIMARY KEY,
@@ -111,22 +101,31 @@ function initTables(database: any) {
     )
   `);
 
-  // Create messages table
   exec(`
     CREATE TABLE IF NOT EXISTS messages (
       id TEXT PRIMARY KEY,
       thread_id TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('user', 'assistant', 'system')),
       content TEXT NOT NULL,
+      tool_invocations TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE
     )
   `);
 
-  // Create index for faster queries
   exec(`
     CREATE INDEX IF NOT EXISTS idx_messages_thread_id ON messages(thread_id)
   `);
+
+  try {
+    exec(`
+      ALTER TABLE messages ADD COLUMN tool_invocations TEXT
+    `);
+  } catch (error: any) {
+    if (!error.message?.includes('duplicate column name')) {
+      console.warn('Migration warning:', error.message);
+    }
+  }
 }
 
 // Thread operations
@@ -170,22 +169,22 @@ export function deleteThread(id: string): void {
   db.prepare('DELETE FROM threads WHERE id = ?').run(id);
 }
 
-// Message operations
 export function createMessage(
   threadId: string,
   role: 'user' | 'assistant' | 'system',
-  content: string
+  content: string,
+  toolInvocations?: any[]
 ): Message {
   const db = getDb();
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
+  const toolInvocationsJson = toolInvocations ? JSON.stringify(toolInvocations) : null;
 
   db.prepare(`
-    INSERT INTO messages (id, thread_id, role, content, created_at)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(id, threadId, role, content, now);
+    INSERT INTO messages (id, thread_id, role, content, tool_invocations, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(id, threadId, role, content, toolInvocationsJson, now);
 
-  // Update thread's updated_at
   db.prepare('UPDATE threads SET updated_at = ? WHERE id = ?').run(now, threadId);
 
   return {
@@ -193,17 +192,23 @@ export function createMessage(
     thread_id: threadId,
     role,
     content,
+    tool_invocations: toolInvocationsJson,
     created_at: now,
   };
 }
 
 export function getMessagesByThread(threadId: string): Message[] {
   const db = getDb();
-  return db.prepare(`
+  const messages = db.prepare(`
     SELECT * FROM messages 
     WHERE thread_id = ? 
     ORDER BY created_at ASC
   `).all(threadId) as Message[];
+
+  return messages.map(message => ({
+    ...message,
+    toolInvocations: message.tool_invocations ? JSON.parse(message.tool_invocations) : undefined
+  }));
 }
 
 export function deleteMessage(id: string): void {
