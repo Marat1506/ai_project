@@ -61,35 +61,7 @@
    yarn dev
    ```
 
-### Решение проблем установки
 
-**Проблема с better-sqlite3 на Windows:**
-
-Если возникают ошибки при установке `better-sqlite3`, попробуйте:
-
-1. **Установите Visual Studio Build Tools:**
-
-   - Скачайте [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
-   - Установите с компонентом "C++ build tools"
-
-2. **Или используйте npm вместо bun:**
-
-   ```bash
-   npm install
-   npm run dev
-   ```
-
-3. **Или установите Python и Visual Studio Build Tools:**
-   ```bash
-   npm install --global windows-build-tools
-   npm install
-   ```
-
-**Проблема с правами доступа на macOS/Linux:**
-
-```bash
-sudo npm install -g bun  # если bun не установлен
-```
 
 ## Функциональность
 
